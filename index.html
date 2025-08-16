@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>河北传统文化数字化 - 首页</title>
+  <!-- 引入外部资源 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+  
+  <!-- Tailwind 配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#8B4513',       // 传统棕色
+            secondary: '#D2B48C',     // 棕褐色
+            accent: '#CD5C5C',        // 传统红色
+            ink: '#2C3E50',           // 墨色
+            paper: '#F5F5DC',         // 宣纸色
+            gold: '#D4AF37',          // 金色点缀
+            deepGold: '#B8860B',      // 深黄色
+          },
+          fontFamily: {
+            song: ['"Noto Serif SC"', 'serif'],  // 宋体风格
+            kai: ['"Noto Serif SC"', 'serif'],   // 楷体风格
+          },
+        },
+      }
+    }
+  </script>
+  
+  <!-- 自定义样式 -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .ink-splash {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cfilter id='blur'%3E%3CfeGaussianBlur stdDeviation='2'/%3E%3C/filter%3E%3Cpath d='M0,50 Q25,20 50,50 Q75,80 100,50 L100,100 L0,100 Z' fill='%232C3E5020' filter='url(%23blur)'/%3E%3C/svg%3E");
+        background-repeat: repeat-x;
+      }
+      .scroll-edge {
+        background-image: linear-gradient(90deg, rgba(139,69,19,0.1), rgba(139,69,19,0.3), rgba(139,69,19,0.1));
+      }
+      .ink-border {
+        box-shadow: 0 0 5px rgba(44,62,80,0.3), inset 0 0 5px rgba(44,62,80,0.2);
+      }
+      .brush-stroke {
+        position: relative;
+      }
+      .brush-stroke::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background-color: #8B4513;
+        opacity: 0.7;
+        transform: skew(-12deg) rotate(-1deg);
+      }
+      .scroll-reveal {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+        transition: opacity 0.8s ease, transform 0.8s ease;
+      }
+      .scroll-reveal.active {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      .particle-hover {
+        transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+      .particle-hover:hover {
+        transform: translateY(-10px) scale(1.05);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+      }
+      /* 语言选择器样式 */
+      .language-dropdown {
+        position: relative;
+        z-index: 60; /* 确保在导航栏之上 */
+      }
+      .language-flag {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 6px;
+      }
+    }
+  </style>
+  
+  <!-- 字体引入 -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="bg-paper font-song text-ink overflow-x-hidden">
+  <!-- 粒子背景容器 -->
+  <div id="particle-container" class="fixed inset-0 z-0 opacity-30 pointer-events-none"></div>
+  
+  <!-- 背景图 -->
+  <div class="fixed inset-0 z-0">
+    <img src="https://picsum.photos/id/1037/1920/1080" alt="河北传统建筑景观" 
+         class="w-full h-full object-cover opacity-60 filter sepia-[20%]">
+    <div class="absolute inset-0 bg-gradient-to-b from-ink/30 via-ink/10 to-paper/70"></div>
+  </div>
+
+  <!-- 导航栏 -->
+  <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-500" id="navbar">
+    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+      
+      <!-- Logo -->
+      <div class="flex items-center space-x-2">
+        <div class="w-10 h-10 relative" id="logo-container">
+          <div class="absolute inset-0 bg-primary/80 rounded-full flex items-center justify-center">
+            <span class="text-paper font-kai text-xl">冀</span>
+          </div>
+        </div>
+        <h1 class="text-2xl font-kai font-bold text-paper tracking-wider" data-i18n="siteTitle">
+          河北文化数字馆
+        </h1>
+      </div>
+      
+      <!-- 导航链接 - 桌面版 -->
+      <nav class="hidden md:flex items-center space-x-8">
+        <a href="#" class="text-paper/90 hover:text-paper transition-colors duration-300 font-kai text-lg relative group" data-i18n="navHome">
+          首页
+          <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gold transition-all duration-300 group-hover:w-full"></span>
+        </a>
+        <a href="#explore" class="text-paper/90 hover:text-paper transition-colors duration-300 font-kai text-lg relative group" data-i18n="navExplore">
+          探索文化
+          <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gold transition-all duration-300 group-hover:w-full"></span>
+        </a>
+        <a href="#" class="text-paper/90 hover:text-paper transition-colors duration-300 font-kai text-lg relative group" data-i18n="navExperience">
+          沉浸体验
+          <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gold transition-all duration-300 group-hover:w-full"></span>
+        </a>
+        <a href="#" class="text-paper/90 hover:text-paper transition-colors duration-300 font-kai text-lg relative group" data-i18n="navProducts">
+          文创产品
+          <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gold transition-all duration-300 group-hover:w-full"></span>
+        </a>
+      </nav>
+      
+      <!-- 语言切换器 - 右上角，深黄色图标，放大1.5倍 -->
+      <div class="language-dropdown ml-4">
+        <button id="language-toggle" class="flex items-center text-deepGold hover:text-deepGold/80 transition-colors p-2 rounded-full hover:bg-ink/20">
+          <i class="fa fa-globe text-2xl"></i> <!-- 放大1.5倍 -->
+          <span class="ml-1 text-sm hidden md:inline" id="current-language">中文</span>
+        </button>
+        <div id="language-menu" class="absolute top-full right-0 mt-2 w-48 bg-paper/95 ink-border rounded-sm shadow-lg transform -translate-y-2 opacity-0 transition-all duration-300 pointer-events-none">
+          <ul class="py-2">
+            <li>
+              <a href="#" class="language-option flex items-center px-4 py-2 hover:bg-primary/10 transition-colors" data-lang="zh" data-name="中文">
+                <img src="https://picsum.photos/id/237/30/30" alt="中文" class="language-flag">
+                中文
+              </a>
+            </li>
+            <li>
+              <a href="#" class="language-option flex items-center px-4 py-2 hover:bg-primary/10 transition-colors" data-lang="en" data-name="English">
+                <img src="https://picsum.photos/id/238/30/30" alt="English" class="language-flag">
+                English
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- 移动端菜单按钮 -->
+      <button class="md:hidden text-paper text-2xl ml-2" id="menu-toggle">
+        <i class="fa fa-bars"></i>
+      </button>
+    </div>
+    
+    <!-- 移动端菜单 -->
+    <div class="md:hidden bg-ink/95 absolute w-full left-0 top-full transform -translate-y-full opacity-0 transition-all duration-300 pointer-events-none" id="mobile-menu">
+      <div class="container mx-auto px-4 py-4 flex flex-col space-y-4">
+        <a href="#" class="text-paper py-2 border-b border-paper/10" data-i18n="navHome">首页</a>
+        <a href="#explore" class="text-paper py-2 border-b border-paper/10" data-i18n="navExplore">探索文化</a>
+        <a href="#" class="text-paper py-2 border-b border-paper/10" data-i18n="navExperience">沉浸体验</a>
+        <a href="#" class="text-paper py-2" data-i18n="navProducts">文创产品</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主视觉区域 -->
+  <section class="relative min-h-screen flex items-center justify-center pt-16 overflow-hidden">
+    <!-- 书卷顶部装饰 -->
+    <div class="absolute top-0 left-0 right-0 h-6 scroll-edge"></div>
+    
+    <!-- 书卷内容 -->
+    <div class="container mx-auto px-4 z-10 pt-12 pb-24" id="scroll-container">
+      <!-- 标题区域 -->
+      <div class="text-center mb-16 max-w-4xl mx-auto">
+        <h1 class="text-[clamp(2.5rem,6vw,4.5rem)] font-kai font-bold text-ink leading-tight mb-6 tracking-wide" data-i18n="mainTitle">
+          河北传统文化数字馆
+        </h1>
+        <p class="text-[clamp(1rem,2vw,1.25rem)] text-ink/80 max-w-2xl mx-auto font-kai leading-relaxed" data-i18n="mainDesc">
+          穿越时空，触摸燕赵大地千年文脉。在这里，传统文化与数字科技交融，
+          带您领略河北十一大地标文化的独特魅力。
+        </p>
+        <div class="mt-10">
+          <a href="#explore" class="inline-block bg-primary/80 hover:bg-primary text-paper font-kai px-8 py-3 rounded-sm transform transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg" data-i18n="startExploring">
+            开始探索 <i class="fa fa-arrow-down ml-2 animate-bounce"></i>
+          </a>
+        </div>
+      </div>
+      
+      <!-- 卷轴展开效果触发器 -->
+      <div class="w-full h-12 flex justify-center items-center my-8">
+        <div class="w-16 h-1 bg-primary/60 rounded-full relative">
+          <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full animate-pulse"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 书卷底部装饰 -->
+    <div class="absolute bottom-0 left-0 right-0 h-6 scroll-edge"></div>
+  </section>
+
+  <!-- 文化板块展示区 -->
+  <section id="explore" class="py-20 relative z-10">
+    <div class="container mx-auto px-4">
+      <div class="text-center mb-16">
+        <h2 class="text-[clamp(1.8rem,4vw,2.5rem)] font-kai font-bold mb-4 brush-stroke inline-block" data-i18n="culturalTreasures">
+          燕赵文化瑰宝
+        </h2>
+        <p class="text-ink/70 max-w-2xl mx-auto" data-i18n="culturalDesc">
+          探索河北十一大文化地标，感受千年历史沉淀与现代科技碰撞的独特魅力
+        </p>
+      </div>
+      
+      <!-- 文化板块网格 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- 承德避暑山庄 -->
+        <div class="bg-paper/80 rounded-sm overflow-hidden ink-border particle-hover scroll-reveal group">
+          <div class="h-56 overflow-hidden relative">
+            <img src="https://picsum.photos/id/1067/800/600" alt="承德避暑山庄" 
+                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-ink/70 to-transparent"></div>
+            <h3 class="absolute bottom-4 left-4 text-paper font-kai text-xl font-semibold" data-i18n="chengde">
+              承德避暑山庄
+            </h3>
+          </div>
+          <div class="p-6">
+            <p class="text-ink/80 text-sm mb-4" data-i18n="chengdeDesc">
+              清代皇家园林，世界文化遗产，融合江南水乡与北方草原风格，展现皇家气派与自然和谐。
+            </p>
+            <a href="#" class="inline-flex items-center text-primary hover:text-accent transition-colors" data-i18n="learnMore">
+              深入了解 <i class="fa fa-long-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
+            </a>
+          </div>
+        </div>
+        
+        <!-- 唐山皮影戏 -->
+        <div class="bg-paper/80 rounded-sm overflow-hidden ink-border particle-hover scroll-reveal group" style="transition-delay: 100ms">
+          <div class="h-56 overflow-hidden relative">
+            <img src="https://picsum.photos/id/175/800/600" alt="唐山皮影戏" 
+                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-ink/70 to-transparent"></div>
+            <h3 class="absolute bottom-4 left-4 text-paper font-kai text-xl font-semibold" data-i18n="tangshanShadow">
+              唐山皮影戏
+            </h3>
+          </div>
+          <div class="p-6">
+            <p class="text-ink/80 text-sm mb-4" data-i18n="tangshanShadowDesc">
+              中国民间艺术瑰宝，以驴皮雕刻人物，借灯光投影表演，唱腔独特，故事生动。
+            </p>
+            <a href="#" class="inline-flex items-center text-primary hover:text-accent transition-colors" data-i18n="learnMore">
+              深入了解 <i class="fa fa-long-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
+            </a>
+          </div>
+        </div>
+        
+        <!-- 邢台邢墟 -->
+        <div class="bg-paper/80 rounded-sm overflow-hidden ink-border particle-hover scroll-reveal group" style="transition-delay: 200ms">
+          <div class="h-56 overflow-hidden relative">
+            <img src="https://picsum.photos/id/304/800/600" alt="邢台邢墟" 
+                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-ink/70 to-transparent"></div>
+            <h3 class="absolute bottom-4 left-4 text-paper font-kai text-xl font-semibold" data-i18n="xingtai">
+              邢台邢墟
+            </h3>
+          </div>
+          <div class="p-6">
+            <p class="text-ink/80 text-sm mb-4" data-i18n="xingtaiDesc">
+              商代重要都城遗址，出土大量青铜器，为研究商代历史文化提供了珍贵实物资料。
+            </p>
+            <a href="#" class="inline-flex items-center text-primary hover:text-accent transition-colors" data-i18n="learnMore">
+              深入了解 <i class="fa fa-long-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
+            </a>
+          </div>
+        </div>
+        
+        <!-- 邯郸磁窑 -->
+        <div class="bg-paper/80 rounded-sm overflow-hidden ink-border particle-hover scroll-reveal group" style="transition-delay: 300ms">
+          <div class="h-56 overflow-hidden relative">
+            <img src="https://picsum.photos/id/871/800/600" alt="邯郸磁窑" 
+                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-ink/70 to-transparent"></div>
+            <h3 class="absolute bottom-4 left-4 text-paper font-kai text-xl font-semibold" data-i18n="handan">
+              邯郸磁窑
+            </h3>
+          </div>
+          <div class="p-6">
+            <p class="text-ink/80 text-sm mb-4" data-i18n="handanDesc">
+              中国古代北方最大的民窑体系，以白地黑花装饰艺术独树一帜，影响深远。
+            </p>
+            <a href="#" class="inline-flex items-center text-primary hover:text-accent transition-colors" data-i18n="learnMore">
+              深入了解 <i class="fa fa-long-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
+            </a>
+          </div>
+        </div>
+        
+        <!-- 石家庄井陉拉花 -->
+        <div class="bg-paper/80 rounded-sm overflow-hidden ink-border particle-hover scroll-reveal group" style="transition-delay: 400ms">
+          <div class="h-56 overflow-hidden relative">
+            <img src="https://picsum.photos/id/1082/800/600" alt="石家庄井陉拉花" 
+                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-ink/70 to-transparent"></div>
+            <h3 class="absolute bottom-4 left-4 text-paper font-kai text-xl font-semibold" data-i18n="shijiazhuang">
+              石家庄井陉拉花
+            </h3>
+          </div>
+          <div class="p-6">
+            <p class="text-ink/80 text-sm mb-4" data-i18n="shijiazhuangDesc">
+              河北特有的民间舞蹈，动作舒展大方，音乐明快热烈，具有浓郁的地方特色。
+            </p>
+            <a href="#" class="inline-flex items-center text-primary hover:text-accent transition-colors" data-i18n="learnMore">
+              深入了解 <i class="fa fa-long-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
+            </a>
+          </div>
+        </div>
+        
+        <!-- 保定曲阳石雕 -->
+        <div class="bg-paper/80 rounded-sm overflow-hidden ink-border particle-hover scroll-reveal group" style="transition-delay: 500ms">
+          <div class="h-56 overflow-hidden relative">
+            <img src="https://picsum.photos/id/128/800/600" alt="保定曲阳石雕" 
+                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-ink/70 to-transparent"></div>
+            <h3 class="absolute bottom-4 left-4 text-paper font-kai text-xl font-semibold" data-i18n="baoding">
+              保定曲阳石雕
+            </h3>
+          </div>
+          <div class="p-6">
+            <p class="text-ink/80 text-sm mb-4" data-i18n="baodingDesc">
+              历史悠久的传统工艺，以汉白玉为原料，雕刻技法精湛，作品题材广泛。
+            </p>
+            <a href="#" class="inline-flex items-center text-primary hover:text-accent transition-colors" data-i18n="learnMore">
+              深入了解 <i class="fa fa-long-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- 秦皇岛山海关 -->
+        <div class="bg-paper/80 rounded-sm overflow-hidden ink-border particle-hover scroll-reveal group" style="transition-delay: 600ms">
+          <div class="h-56 overflow-hidden relative">
+            <img src="https://picsum.photos/id/1031/800/600" alt="秦皇岛山海关" 
+                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-ink/70 to-transparent"></div>
+            <h3 class="absolute bottom-4 left-4 text-paper font-kai text-xl font-semibold" data-i18n="qinhuangdao">
+              秦皇岛山海关
+            </h3>
+          </div>
+          <div class="p-6">
+            <p class="text-ink/80 text-sm mb-4" data-i18n="qinhuangdaoDesc">
+              明长城东端起点，有"天下第一关"之称，是中国古代重要的军事防御工程。
+            </p>
+            <a href="#" class="inline-flex items-center text-primary hover:text-accent transition-colors" data-i18n="learnMore">
+              深入了解 <i class="fa fa-long-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- 张家口崇礼滑雪场 -->
+        <div class="bg-paper/80 rounded-sm overflow-hidden ink-border particle-hover scroll-reveal group" style="transition-delay: 700ms">
+          <div class="h-56 overflow-hidden relative">
+            <img src="https://picsum.photos/id/15/800/600" alt="张家口崇礼滑雪场" 
+                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-ink/70 to-transparent"></div>
+            <h3 class="absolute bottom-4 left-4 text-paper font-kai text-xl font-semibold" data-i18n="zhangjiakou">
+              张家口崇礼滑雪场
+            </h3>
+          </div>
+          <div class="p-6">
+            <p class="text-ink/80 text-sm mb-4" data-i18n="zhangjiakouDesc">
+              华北地区最大的滑雪场集群，2022年冬奥会雪上项目举办地，冰雪文化与生态景观完美结合。
+            </p>
+            <a href="#" class="inline-flex items-center text-primary hover:text-accent transition-colors" data-i18n="learnMore">
+              深入了解 <i class="fa fa-long-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- 廊坊大厂花丝 -->
+        <div class="bg-paper/80 rounded-sm overflow-hidden ink-border particle-hover scroll-reveal group" style="transition-delay: 800ms">
+          <div class="h-56 overflow-hidden relative">
+            <img src="https://picsum.photos/id/1040/800/600" alt="廊坊大厂花丝" 
+                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-ink/70 to-transparent"></div>
+            <h3 class="absolute bottom-4 left-4 text-paper font-kai text-xl font-semibold" data-i18n="langfang">
+              廊坊大厂花丝
+            </h3>
+          </div>
+          <div class="p-6">
+            <p class="text-ink/80 text-sm mb-4" data-i18n="langfangDesc">
+              国家级非物质文化遗产，以金丝盘曲焊接成型，工艺精细复杂，有"燕京八绝"之称。
+            </p>
+            <a href="#" class="inline-flex items-center text-primary hover:text-accent transition-colors" data-i18n="learnMore">
+              深入了解 <i class="fa fa-long-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- 沧州武术 -->
+        <div class="bg-paper/80 rounded-sm overflow-hidden ink-border particle-hover scroll-reveal group" style="transition-delay: 900ms">
+          <div class="h-56 overflow-hidden relative">
+            <img src="https://picsum.photos/id/177/800/600" alt="沧州武术" 
+                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-ink/70 to-transparent"></div>
+            <h3 class="absolute bottom-4 left-4 text-paper font-kai text-xl font-semibold" data-i18n="cangzhou">
+              沧州武术
+            </h3>
+          </div>
+          <div class="p-6">
+            <p class="text-ink/80 text-sm mb-4" data-i18n="cangzhouDesc">
+              中国武术发源地之一，有"武术之乡"美誉，门派众多，拳种丰富，注重内外兼修。
+            </p>
+            <a href="#" class="inline-flex items-center text-primary hover:text-accent transition-colors" data-i18n="learnMore">
+              深入了解 <i class="fa fa-long-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- 衡水候店毛笔 -->
+        <div class="bg-paper/80 rounded-sm overflow-hidden ink-border particle-hover scroll-reveal group" style="transition-delay: 1000ms">
+          <div class="h-56 overflow-hidden relative">
+            <img src="https://picsum.photos/id/20/800/600" alt="衡水候店毛笔" 
+                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+            <div class="absolute inset-0 bg-gradient-to-t from-ink/70 to-transparent"></div>
+            <h3 class="absolute bottom-4 left-4 text-paper font-kai text-xl font-semibold" data-i18n="hengshui">
+              衡水候店毛笔
+            </h3>
+          </div>
+          <div class="p-6">
+            <p class="text-ink/80 text-sm mb-4" data-i18n="hengshuiDesc">
+              中国著名毛笔品种，始于秦朝，有"毛颖之技甲天下"之称，制作工艺精细，刚柔相济。
+            </p>
+            <a href="#" class="inline-flex items-center text-primary hover:text-accent transition-colors" data-i18n="learnMore">
+              深入了解 <i class="fa fa-long-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 特色体验区 -->
+  <section class="py-20 bg-ink/5 relative z-10">
+    <div class="container mx-auto px-4">
+      <div class="text-center mb-16">
+        <h2 class="text-[clamp(1.8rem,4vw,2.5rem)] font-kai font-bold mb-4 brush-stroke inline-block" data-i18n="digitalExperience">
+          数字沉浸体验
+        </h2>
+        <p class="text-ink/70 max-w-2xl mx-auto" data-i18n="digitalDesc">
+          借助现代科技，开启传统文化的全新体验方式
+        </p>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        <div class="scroll-reveal">
+          <div class="relative rounded-sm overflow-hidden ink-border">
+            <img src="https://picsum.photos/id/1059/800/600" alt="3D虚拟漫游体验" class="w-full h-auto">
+            <div class="absolute inset-0 bg-gradient-to-t from-ink/60 to-transparent flex items-end">
+              <div class="p-6 text-paper">
+                <h3 class="text-2xl font-kai mb-2" data-i18n="vrTour">3D虚拟漫游</h3>
+                <p data-i18n="vrTourDesc">足不出户，沉浸式体验河北文化遗产</p>
+              </div>
+            </div>
+            <div class="absolute top-4 right-4 bg-primary/80 text-paper text-sm px-3 py-1 rounded-full" data-i18n="popular">
+              热门体验
+            </div>
+          </div>
+        </div>
+        
+        <div class="space-y-6 scroll-reveal" style="transition-delay: 300ms">
+          <div class="flex items-start space-x-4">
+            <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+              <i class="fa fa-vr-cardboard text-primary text-xl"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-kai font-semibold mb-2" data-i18n="vrExperience">VR实景体验</h3>
+              <p class="text-ink/70" data-i18n="vrExperienceDesc">
+                通过虚拟现实技术，360°全方位探索河北文化古迹，感受身临其境的震撼。
+              </p>
+            </div>
+          </div>
+          
+          <div class="flex items-start space-x-4">
+            <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+              <i class="fa fa-hand-pointer-o text-primary text-xl"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-kai font-semibold mb-2" data-i18n="interactive">交互式学习</h3>
+              <p class="text-ink/70" data-i18n="interactiveDesc">
+                参与互动游戏和问答，在趣味体验中深入了解河北传统文化的历史渊源。
+              </p>
+            </div>
+          </div>
+          
+          <div class="flex items-start space-x-4">
+            <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+              <i class="fa fa-camera text-primary text-xl"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-kai font-semibold mb-2" data-i18n="arExperience">AR增强现实</h3>
+              <p class="text-ink/70" data-i18n="arExperienceDesc">
+                通过增强现实技术，让文物"活"起来，直观展示其背后的历史故事和文化内涵。
+              </p>
+            </div>
+          </div>
+          
+          <a href="#" class="inline-block bg-primary hover:bg-primary/90 text-paper font-kai px-6 py-3 rounded-sm transform transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg" data-i18n="experienceNow">
+            立即体验 <i class="fa fa-arrow-right ml-2"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 页脚 -->
+  <footer class="bg-ink text-paper/80 py-12 relative z-10">
+    <div class="container mx-auto px-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div>
+          <div class="flex items-center space-x-2 mb-6">
+            <div class="w-10 h-10 bg-primary/80 rounded-full flex items-center justify-center">
+              <span class="text-paper font-kai text-xl">冀</span>
+            </div>
+            <h3 class="text-xl font-kai font-bold text-paper" data-i18n="siteTitle">河北文化数字馆</h3>
+          </div>
+          <p class="text-sm mb-6" data-i18n="footerDesc">
+            传承燕赵文化，连接古今未来，让河北传统文化在数字时代焕发新的生机。
+          </p>
+          <div class="flex space-x-4">
+            <a href="#" class="text-paper/60 hover:text-paper transition-colors">
+              <i class="fa fa-weibo text-xl"></i>
+            </a>
+            <a href="#" class="text-paper/60 hover:text-paper transition-colors">
+              <i class="fa fa-wechat text-xl"></i>
+            </a>
+            <a href="#" class="text-paper/60 hover:text-paper transition-colors">
+              <i class="fa fa-instagram text-xl"></i>
+            </a>
+            <a href="#" class="text-paper/60 hover:text-paper transition-colors">
+              <i class="fa fa-youtube-play text-xl"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div>
+          <h4 class="text-paper font-kai text-lg mb-4" data-i18n="quickLinks">快速链接</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="#" class="hover:text-paper transition-colors" data-i18n="navHome">首页</a></li>
+            <li><a href="#explore" class="hover:text-paper transition-colors" data-i18n="navExplore">文化探索</a></li>
+            <li><a href="#" class="hover:text-paper transition-colors" data-i18n="navExperience">沉浸体验</a></li>
+            <li><a href="#" class="hover:text-paper transition-colors" data-i18n="navProducts">文创产品</a></li>
+            <li><a href="#" class="hover:text-paper transition-colors" data-i18n="aboutUs">关于我们</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="text-paper font-kai text-lg mb-4" data-i18n="culturalResources">文化资源</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="#" class="hover:text-paper transition-colors" data-i18n="digitalMuseum">数字博物馆</a></li>
+            <li><a href="#" class="hover:text-paper transition-colors" data-i18n="intangibleHeritage">非遗数据库</a></li>
+            <li><a href="#" class="hover:text-paper transition-colors" data-i18n="historicalDocs">历史文献</a></li>
+            <li><a href="#" class="hover:text-paper transition-colors" data-i18n="academicResearch">学术研究</a></li>
+            <li><a href="#" class="hover:text-paper transition-colors" data-i18n="educationalResources">教育资源</a></li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="text-paper font-kai text-lg mb-4" data-i18n="contactUs">联系我们</h4>
+          <ul class="space-y-3 text-sm">
+            <li class="flex items-start">
+              <i class="fa fa-map-marker mt-1 mr-3 text-primary"></i>
+              <span data-i18n="address">河北省石家庄市裕华东路113号</span>
+            </li>
+            <li class="flex items-center">
+              <i class="fa fa-phone mr-3 text-primary"></i>
+              <span>0311-12345678</span>
+            </li>
+            <li class="flex items-center">
+              <i class="fa fa-envelope mr-3 text-primary"></i>
+              <span>contact@hebeiculture.com</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="border-t border-paper/10 mt-12 pt-8 text-center text-sm" data-i18n="copyright">
+        © 2023 河北传统文化数字馆 版权所有 | 冀ICP备12345678号
+      </div>
+    </div>
+  </footer>
+
+  <!-- 返回顶部按钮 -->
+  <button id="back-to-top" class="fixed bottom-8 right-8 bg-primary/80 hover:bg-primary text-paper w-12 h-12 rounded-full flex items-center justify-center shadow-lg transform transition-all duration-300 opacity-0 translate-y-10 pointer-events-none">
+    <i class="fa fa-arrow-up"></i>
+  </button>
+
+  <!-- JavaScript -->
+  <script>
+    // 多语言数据（仅保留中英）
+    const translations = {
+      zh: {
+        siteTitle: "河北文化数字馆",
+        navHome: "首页",
+        navExplore: "探索文化",
+        navExperience: "沉浸体验",
+        navProducts: "文创产品",
+        mainTitle: "河北传统文化数字馆",
+        mainDesc: "穿越时空，触摸燕赵大地千年文脉。在这里，传统文化与数字科技交融，带您领略河北十一大地标文化的独特魅力。",
+        startExploring: "开始探索",
+        culturalTreasures: "燕赵文化瑰宝",
+        culturalDesc: "探索河北十一大文化地标，感受千年历史沉淀与现代科技碰撞的独特魅力",
+        chengde: "承德避暑山庄",
+        chengdeDesc: "清代皇家园林，世界文化遗产，融合江南水乡与北方草原风格，展现皇家气派与自然和谐。",
+        tangshanShadow: "唐山皮影戏",
+        tangshanShadowDesc: "中国民间艺术瑰宝，以驴皮雕刻人物，借灯光投影表演，唱腔独特，故事生动。",
+        xingtai: "邢台邢墟",
+        xingtaiDesc: "商代重要都城遗址，出土大量青铜器，为研究商代历史文化提供了珍贵实物资料。",
+        handan: "邯郸磁窑",
+        handanDesc: "中国古代北方最大的民窑体系，以白地黑花装饰艺术独树一帜，影响深远。",
+        shijiazhuang: "石家庄井陉拉花",
+        shijiazhuangDesc: "河北特有的民间舞蹈，动作舒展大方，音乐明快热烈，具有浓郁的地方特色。",
+        baoding: "保定曲阳石雕",
+        baodingDesc: "历史悠久的传统工艺，以汉白玉为原料，雕刻技法精湛，作品题材广泛。",
+        qinhuangdao: "秦皇岛山海关",
+        qinhuangdaoDesc: "明长城东端起点，有'天下第一关'之称，是中国古代重要的军事防御工程。",
+        zhangjiakou: "张家口崇礼滑雪场",
+        zhangjiakouDesc: "华北地区最大的滑雪场集群，2022年冬奥会雪上项目举办地，冰雪文化与生态景观完美结合。",
+        langfang: "廊坊大厂花丝",
+        langfangDesc: "国家级非物质文化遗产，以金丝盘曲焊接成型，工艺精细复杂，有'燕京八绝'之称。",
+        cangzhou: "沧州武术",
+        cangzhouDesc: "中国武术发源地之一，有'武术之乡'美誉，门派众多，拳种丰富，注重内外兼修。",
+        hengshui: "衡水候店毛笔",
+        hengshuiDesc: "中国著名毛笔品种，始于秦朝，有'毛颖之技甲天下'之称，制作工艺精细，刚柔相济。",
+        learnMore: "深入了解",
+        digitalExperience: "数字沉浸体验",
+        digitalDesc: "借助现代科技，开启传统文化的全新体验方式",
+        vrTour: "3D虚拟漫游",
+        vrTourDesc: "足不出户，沉浸式体验河北文化遗产",
+        popular: "热门体验",
+        vrExperience: "VR实景体验",
+        vrExperienceDesc: "通过虚拟现实技术，360°全方位探索河北文化古迹，感受身临其境的震撼。",
+        interactive: "交互式学习",
+        interactiveDesc: "参与互动游戏和问答，在趣味体验中深入了解河北传统文化的历史渊源。",
+        arExperience: "AR增强现实",
+        arExperienceDesc: "通过增强现实技术，让文物'活'起来，直观展示其背后的历史故事和文化内涵。",
+        experienceNow: "立即体验",
+        footerDesc: "传承燕赵文化，连接古今未来，让河北传统文化在数字时代焕发新的生机。",
+        quickLinks: "快速链接",
+        aboutUs: "关于我们",
+        culturalResources: "文化资源",
+        digitalMuseum: "数字博物馆",
+        intangibleHeritage: "非遗数据库",
+        historicalDocs: "历史文献",
+        academicResearch: "学术研究",
+        educationalResources: "教育资源",
+        contactUs: "联系我们",
+        address: "河北省石家庄市裕华东路113号",
+        copyright: "© 2023 河北传统文化数字馆 版权所有 | 冀ICP备12345678号"
+      },
+      en: {
+        siteTitle: "Hebei Culture Digital Museum",
+        navHome: "Home",
+        navExplore: "Explore Culture",
+        navExperience: "Immersive Experience",
+        navProducts: "Cultural Products",
+        mainTitle: "Hebei Traditional Culture Digital Museum",
+        mainDesc: "Travel through time and space to touch the thousand-year cultural context of the Yan-Zhao land. Here, traditional culture merges with digital technology, bringing you the unique charm of Hebei's eleven cultural landmarks.",
+        startExploring: "Start Exploring",
+        culturalTreasures: "Yan-Zhao Cultural Treasures",
+        culturalDesc: "Explore eleven major cultural landmarks in Hebei and experience the unique charm of thousands of years of historical heritage combined with modern technology",
+        chengde: "Chengde Mountain Resort",
+        chengdeDesc: "A Qing Dynasty imperial garden and world cultural heritage, blending Jiangnan water town and northern grassland styles, showcasing imperial grandeur and harmony with nature.",
+        tangshanShadow: "Tangshan Shadow Puppetry",
+        tangshanShadowDesc: "A treasure of Chinese folk art, using donkey hide carved figures and light projection performances with unique singing styles and vivid stories.",
+        xingtai: "Xingtai Xing Ruins",
+        xingtaiDesc: "An important capital site of the Shang Dynasty, with a large number of bronze artifacts unearthed, providing precious materials for studying Shang Dynasty history and culture.",
+        handan: "Handan Cizhou Kiln",
+        handanDesc: "The largest folk kiln system in ancient northern China, famous for its unique white-ground black-pattern decoration art with far-reaching influence.",
+        shijiazhuang: "Shijiazhuang Jingxing Lahua Dance",
+        shijiazhuangDesc: "A unique folk dance in Hebei with graceful movements and lively music, featuring strong local characteristics.",
+        baoding: "Baoding Quyang Stone Carving",
+        baodingDesc: "A time-honored traditional craft using white marble as raw material, with exquisite carving techniques and a wide range of subjects.",
+        qinhuangdao: "Qinhuangdao Shanhaiguan",
+        qinhuangdaoDesc: "The eastern starting point of the Ming Great Wall, known as 'the First Pass Under Heaven', an important ancient Chinese military defense project.",
+        zhangjiakou: "Zhangjiakou Chongli Ski Resorts",
+        zhangjiakouDesc: "The largest ski resort cluster in North China, venue for the 2022 Winter Olympics snow events, perfectly combining ice-snow culture with ecological landscapes.",
+        langfang: "Langfang Dachang Filigree",
+        langfangDesc: "A national intangible cultural heritage, known for its intricate gold wire winding and welding techniques, one of the 'Eight Wonders of Yanjing'.",
+        cangzhou: "Cangzhou Martial Arts",
+        cangzhouDesc: "One of the birthplaces of Chinese martial arts, known as the 'Hometown of Martial Arts', with numerous schools and rich varieties of boxing styles emphasizing both internal and external cultivation.",
+        hengshui: "Hengshui Houdian Writing Brushes",
+        hengshuiDesc: "A famous Chinese writing brush variety dating back to the Qin Dynasty, known as 'the best writing brushes under heaven', with exquisite craftsmanship and a perfect balance of rigidity and flexibility.",
+        learnMore: "Learn More",
+        digitalExperience: "Digital Immersive Experience",
+        digitalDesc: "Using modern technology to open up new ways to experience traditional culture",
+        vrTour: "3D Virtual Tour",
+        vrTourDesc: "Experience Hebei's cultural heritage immersively without leaving home",
+        popular: "Popular Experience",
+        vrExperience: "VR Reality Experience",
+        vrExperienceDesc: "Through virtual reality technology, explore Hebei's cultural relics in 360° and feel the shock of being there.",
+        interactive: "Interactive Learning",
+        interactiveDesc: "Participate in interactive games and quizzes to gain a deeper understanding of the historical origins of Hebei's traditional culture through fun experiences.",
+        arExperience: "AR Augmented Reality",
+        arExperienceDesc: "Through augmented reality technology, bring cultural relics to 'life' and intuitively display the historical stories and cultural connotations behind them.",
+        experienceNow: "Experience Now",
+        footerDesc: "Inheriting Yan-Zhao culture, connecting the past, present and future, allowing Hebei's traditional culture to flourish in the digital age.",
+        quickLinks: "Quick Links",
+        aboutUs: "About Us",
+        culturalResources: "Cultural Resources",
+        digitalMuseum: "Digital Museum",
+        intangibleHeritage: "Intangible Heritage Database",
+        historicalDocs: "Historical Documents",
+        academicResearch: "Academic Research",
+        educationalResources: "Educational Resources",
+        contactUs: "Contact Us",
+        address: "113 Yuhua East Road, Shijiazhuang, Hebei Province",
+        copyright: "© 2023 Hebei Traditional Culture Digital Museum. All rights reserved. | Hebei ICP No. 12345678"
+      }
+    };
+    
+    // 切换语言函数
+    function changeLanguage(lang) {
+      // 获取所有带有data-i18n属性的元素
+      const elements = document.querySelectorAll('[data-i18n]');
+      
+      // 遍历元素并更新内容
+      elements.forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (translations[lang] && translations[lang][key]) {
+          element.textContent = translations[lang][key];
+        }
+      });
+      
+      // 更新页面语言属性
+      document.documentElement.lang = lang;
+    }
+    
+    // 导航栏滚动效果
+    const navbar = document.getElementById('navbar');
+    const backToTop = document.getElementById('back-to-top');
+    
+    window.addEventListener('scroll', function() {
+      if (window.scrollY > 100) {
+        navbar.classList.add('bg-ink/90', 'shadow-md');
+        navbar.classList.remove('py-4');
+        navbar.classList.add('py-2');
+        
+        backToTop.classList.remove('opacity-0', 'translate-y-10', 'pointer-events-none');
+        backToTop.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+      } else {
+        navbar.classList.remove('bg-ink/90', 'shadow-md');
+        navbar.classList.remove('py-2');
+        navbar.classList.add('py-4');
+        
+        backToTop.classList.add('opacity-0', 'translate-y-10', 'pointer-events-none');
+        backToTop.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+      }
+      
+      // 滚动显示动画
+      const scrollElements = document.querySelectorAll('.scroll-reveal');
+      scrollElements.forEach(el => {
+        const elementTop = el.getBoundingClientRect().top;
+        const elementVisible = 150;
+        if (elementTop < window.innerHeight - elementVisible) {
+          el.classList.add('active');
+        }
+      });
+    });
+    
+    // 移动端菜单
+    const menuToggle = document.getElementById('menu-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+    
+    menuToggle.addEventListener('click', function() {
+      if (mobileMenu.classList.contains('opacity-0')) {
+        mobileMenu.classList.remove('opacity-0', '-translate-y-full', 'pointer-events-none');
+        mobileMenu.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+        menuToggle.innerHTML = '<i class="fa fa-times"></i>';
+      } else {
+        mobileMenu.classList.add('opacity-0', '-translate-y-full', 'pointer-events-none');
+        mobileMenu.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+        menuToggle.innerHTML = '<i class="fa fa-bars"></i>';
+      }
+    });
+    
+    // 语言切换功能
+    const languageToggle = document.getElementById('language-toggle');
+    const languageMenu = document.getElementById('language-menu');
+    const languageOptions = document.querySelectorAll('.language-option');
+    const currentLanguageEl = document.getElementById('current-language');
+    let languageMenuOpen = false;
+    
+    // 切换语言菜单显示状态
+    languageToggle.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (languageMenuOpen) {
+        closeLanguageMenu();
+      } else {
+        openLanguageMenu();
+      }
+    });
+    
+    // 打开语言菜单
+    function openLanguageMenu() {
+      languageMenu.classList.remove('opacity-0', '-translate-y-2', 'pointer-events-none');
+      languageMenu.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+      languageMenuOpen = true;
+    }
+    
+    // 关闭语言菜单
+    function closeLanguageMenu() {
+      languageMenu.classList.add('opacity-0', '-translate-y-2', 'pointer-events-none');
+      languageMenu.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+      languageMenuOpen = false;
+    }
+    
+    // 点击其他区域关闭语言菜单
+    document.addEventListener('click', function(e) {
+      if (languageMenuOpen && !languageMenu.contains(e.target) && e.target !== languageToggle) {
+        closeLanguageMenu();
+      }
+    });
+    
+    // 选择语言
+    languageOptions.forEach(option => {
+      option.addEventListener('click', function(e) {
+        e.preventDefault();
+        const langCode = this.getAttribute('data-lang');
+        const langName = this.getAttribute('data-name');
+        
+        // 更新语言切换按钮文本
+        currentLanguageEl.textContent = langName;
+        
+        // 切换页面语言
+        changeLanguage(langCode);
+        
+        // 关闭菜单
+        closeLanguageMenu();
+      });
+    });
+    
+    // 平滑滚动
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        
+        // 关闭移动菜单（如果打开）
+        if (mobileMenu.classList.contains('opacity-100')) {
+          mobileMenu.classList.add('opacity-0', '-translate-y-full', 'pointer-events-none');
+          mobileMenu.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+          menuToggle.innerHTML = '<i class="fa fa-bars"></i>';
+        }
+        
+        // 关闭语言菜单（如果打开）
+        if (languageMenuOpen) {
+          closeLanguageMenu();
+        }
+        
+        document.querySelector(this.getAttribute('href')).scrollIntoView({
+          behavior: 'smooth'
+        });
+      });
+    });
+    
+    // 返回顶部
+    backToTop.addEventListener('click', function() {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+    
+    // 书卷展开动画
+    window.addEventListener('load', function() {
+      const scrollContainer = document.getElementById('scroll-container');
+      scrollContainer.style.opacity = '0';
+      scrollContainer.style.transform = 'scale(0.95) translateY(30px)';
+      
+      setTimeout(() => {
+        scrollContainer.style.transition = 'opacity 1.2s ease, transform 1.2s ease';
+        scrollContainer.style.opacity = '1';
+        scrollContainer.style.transform = 'scale(1) translateY(0)';
+      }, 300);
+      
+      // 触发初始滚动检查
+      setTimeout(() => {
+        window.dispatchEvent(new Event('scroll'));
+      }, 500);
+      
+      // 创建粒子效果
+      createParticles();
+    });
+    
+    // 水墨粒子效果
+    function createParticles() {
+      const container = document.getElementById('particle-container');
+      const particleCount = 50;
+      
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        
+        // 随机大小和位置
+        const size = Math.random() * 5 + 1;
+        const posX = Math.random() * 100;
+        const posY = Math.random() * 100;
+        const delay = Math.random() * 5;
+        const duration = Math.random() * 20 + 10;
+        
+        particle.style.cssText = `
+          position: absolute;
+          width: ${size}px;
+          height: ${size}px;
+          background-color: rgba(44, 62, 80, 0.5);
+          border-radius: 50%;
+          top: ${posY}%;
+          left: ${posX}%;
+          opacity: 0.6;
+          animation: float ${duration}s ease-in-out ${delay}s infinite;
+        `;
+        
+        container.appendChild(particle);
+      }
+      
+      // 添加动画样式
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0) translateX(0);
+          }
+          25% {
+            transform: translateY(-15px) translateX(10px);
+          }
+          50% {
+            transform: translateY(-5px) translateX(15px);
+          }
+          75% {
+            transform: translateY(-10px) translateX(5px);
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    // Logo 粒子效果
+    const logoContainer = document.getElementById('logo-container');
+    let particles = [];
+    
+    function createLogoParticles() {
+      // 清除现有粒子
+      particles.forEach(p => p.remove());
+      particles = [];
+      
+      const particleCount = 15;
+      
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        
+        // 随机大小和位置（围绕Logo）
+        const size = Math.random() * 3 + 1;
+        const angle = (i / particleCount) * Math.PI * 2;
+        const radius = 15 + Math.random() * 5;
+        const posX = 50 + Math.cos(angle) * radius;
+        const posY = 50 + Math.sin(angle) * radius;
+        const delay = Math.random() * 2;
+        
+        particle.style.cssText = `
+          position: absolute;
+          width: ${size}px;
+          height: ${size}px;
+          background-color: rgba(212, 175, 55, 0.8);
+          border-radius: 50%;
+          top: ${posY}%;
+          left: ${posX}%;
+          transform: translate(-50%, -50%);
+          animation: orbit 6s linear ${delay}s infinite;
+          z-index: 10;
+        `;
+        
+        // 存储轨道参数
+        particle.angle = angle;
+        particle.radius = radius;
+        
+        logoContainer.appendChild(particle);
+        particles.push(particle);
+      }
+      
+      // 添加轨道动画
+      const style = document.createElement('style');
+      style.id = 'logo-particle-style';
+      style.textContent = `
+        @keyframes orbit {
+          0% {
+            transform: rotate(0deg) translateX(20px) rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg) translateX(20px) rotate(-360deg);
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    // 初始化Logo粒子
+    createLogoParticles();
+    
+    // 鼠标悬停Logo时的效果
+    logoContainer.addEventListener('mouseenter', function() {
+      particles.forEach(p => {
+        p.style.transform = `scale(1.5)`;
+        p.style.opacity = '1';
+        p.style.transition = 'all 0.3s ease';
+      });
+    });
+    
+    logoContainer.addEventListener('mouseleave', function() {
+      particles.forEach(p => {
+        p.style.transform = '';
+        p.style.opacity = '0.8';
+      });
+    });
+  </script>
+</body>
+
+</html>
